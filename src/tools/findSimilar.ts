@@ -2,27 +2,24 @@ import { z } from "zod";
 import axios from "axios";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { API_CONFIG } from "./config.js";
-import { ExaSearchRequest, ExaSearchResponse } from "../types.js";
+import { ExaFindSimilarRequest, ExaSearchResponse } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 
-export function registerWebSearchTool(server: McpServer, config?: { exaApiKey?: string }): void {
+export function registerFindSimilarTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
-    "web_search_exa",
-    "Advanced web search using Exa AI with semantic understanding. Supports real-time searches, content extraction, filtering by date/domain, and intelligent result ranking. Returns full text content, highlights, and summaries.",
+    "find_similar_exa",
+    "Find pages semantically similar to a given URL. Perfect for competitor analysis, finding related research papers, discovering alternative sources, or building content recommendation systems.",
     {
-      query: z.string().describe("Search query - can be natural language or keywords"),
-      numResults: z.number().optional().describe("Number of results to return (default: 5, max: 100)"),
-      type: z.enum(['neural', 'keyword', 'auto']).optional().describe("Search type: neural for semantic, keyword for exact match, auto for automatic selection (default: auto)"),
-      category: z.enum(['company', 'research paper', 'news', 'pdf', 'github', 'tweet', 'personal site', 'linkedin profile', 'financial report']).optional().describe("Filter results by content type"),
+      url: z.string().describe("The reference URL to find similar pages for"),
+      numResults: z.number().optional().describe("Number of similar results to return (default: 5, max: 100)"),
       includeDomains: z.array(z.string()).optional().describe("Only include results from these domains"),
       excludeDomains: z.array(z.string()).optional().describe("Exclude results from these domains"),
-      startPublishedDate: z.string().optional().describe("Filter by publication date (ISO 8601 format, e.g., 2024-01-01)"),
+      excludeSourceDomain: z.boolean().optional().describe("Exclude results from the same domain as the reference URL (default: false)"),
+      category: z.enum(['company', 'research paper', 'news', 'pdf', 'github', 'tweet', 'personal site', 'linkedin profile', 'financial report']).optional().describe("Filter similar results by content type"),
+      startPublishedDate: z.string().optional().describe("Filter by publication date (ISO 8601 format)"),
       endPublishedDate: z.string().optional().describe("End date for publication filter (ISO 8601 format)"),
       startCrawlDate: z.string().optional().describe("Filter by when page was crawled (ISO 8601 format)"),
       endCrawlDate: z.string().optional().describe("End date for crawl filter (ISO 8601 format)"),
-      includeText: z.string().optional().describe("Only include results containing this text"),
-      excludeText: z.string().optional().describe("Exclude results containing this text"),
-      useAutoprompt: z.boolean().optional().describe("Let Exa optimize the query automatically (default: true)"),
       contents: z.object({
         text: z.union([
           z.boolean(),
@@ -30,7 +27,7 @@ export function registerWebSearchTool(server: McpServer, config?: { exaApiKey?: 
             maxCharacters: z.number().optional().describe("Maximum characters to return per result (default: 3000)"),
             includeHtmlTags: z.boolean().optional().describe("Include HTML tags in text content")
           })
-        ]).optional().describe("Extract full text content from pages"),
+        ]).optional().describe("Extract full text content from similar pages"),
         highlights: z.union([
           z.boolean(),
           z.object({
@@ -55,13 +52,13 @@ export function registerWebSearchTool(server: McpServer, config?: { exaApiKey?: 
           links: z.boolean().optional().describe("Extract all links from the page"),
           imageLinks: z.boolean().optional().describe("Extract all image links from the page")
         }).optional().describe("Additional metadata to extract")
-      }).optional().describe("Content extraction options")
+      }).optional().describe("Content extraction options for similar pages")
     },
     async (args) => {
-      const requestId = `web_search_exa-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      const logger = createRequestLogger(requestId, 'web_search_exa');
+      const requestId = `find_similar_exa-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const logger = createRequestLogger(requestId, 'find_similar_exa');
       
-      logger.start(args.query);
+      logger.start(`Finding pages similar to: ${args.url}`);
       
       try {
         const axiosInstance = axios.create({
@@ -74,20 +71,18 @@ export function registerWebSearchTool(server: McpServer, config?: { exaApiKey?: 
           timeout: API_CONFIG.REQUEST_TIMEOUT
         });
 
-        // Build the search request with all parameters
-        const searchRequest: ExaSearchRequest = {
-          query: args.query,
-          type: args.type || 'auto',
+        // Build the find similar request
+        const findSimilarRequest: ExaFindSimilarRequest = {
+          url: args.url,
           numResults: args.numResults || API_CONFIG.DEFAULT_NUM_RESULTS,
-          ...(args.category && { category: args.category }),
           ...(args.includeDomains && { includeDomains: args.includeDomains }),
           ...(args.excludeDomains && { excludeDomains: args.excludeDomains }),
+          ...(args.excludeSourceDomain !== undefined && { excludeSourceDomain: args.excludeSourceDomain }),
+          ...(args.category && { category: args.category }),
           ...(args.startPublishedDate && { startPublishedDate: args.startPublishedDate }),
           ...(args.endPublishedDate && { endPublishedDate: args.endPublishedDate }),
           ...(args.startCrawlDate && { startCrawlDate: args.startCrawlDate }),
-          ...(args.endCrawlDate && { endCrawlDate: args.endCrawlDate }),
-          ...(args.includeText && { includeText: args.includeText }),
-          ...(args.excludeText && { excludeText: args.excludeText })
+          ...(args.endCrawlDate && { endCrawlDate: args.endCrawlDate })
         };
 
         // Build content options if provided
@@ -105,7 +100,7 @@ export function registerWebSearchTool(server: McpServer, config?: { exaApiKey?: 
               };
             }
           } else {
-            // Default: include text with default max characters
+            // Default: include text
             contentOptions.text = { maxCharacters: API_CONFIG.DEFAULT_MAX_CHARACTERS };
           }
           
@@ -153,54 +148,81 @@ export function registerWebSearchTool(server: McpServer, config?: { exaApiKey?: 
             };
           }
           
-          searchRequest.contents = contentOptions;
+          findSimilarRequest.contents = contentOptions;
         } else {
           // Default content options
-          searchRequest.contents = {
+          findSimilarRequest.contents = {
             text: { maxCharacters: API_CONFIG.DEFAULT_MAX_CHARACTERS },
             livecrawl: 'preferred'
           };
         }
         
-        logger.log(`Sending search request with ${Object.keys(searchRequest).length} parameters`);
+        logger.log(`Sending find similar request with ${Object.keys(findSimilarRequest).length} parameters`);
         
         const response = await axiosInstance.post<ExaSearchResponse>(
-          API_CONFIG.ENDPOINTS.SEARCH,
-          searchRequest
+          API_CONFIG.ENDPOINTS.FIND_SIMILAR,
+          findSimilarRequest
         );
         
-        logger.log(`Received ${response.data.results?.length || 0} results`);
+        logger.log(`Found ${response.data.results?.length || 0} similar pages`);
 
         if (!response.data || !response.data.results) {
           logger.log("Warning: Empty or invalid response");
           return {
             content: [{
               type: "text" as const,
-              text: "No search results found. Please try a different query or adjust your filters."
+              text: "No similar pages found. The URL may be inaccessible or have no similar content in the index."
             }]
           };
+        }
+
+        // Extract domain from reference URL for analysis
+        let referenceDomain = '';
+        try {
+          const urlObj = new URL(args.url);
+          referenceDomain = urlObj.hostname;
+        } catch (e) {
+          logger.log("Could not parse reference URL");
         }
 
         // Format the response for better readability
         const formattedResults = {
           requestId: response.data.requestId,
-          query: args.query,
-          type: response.data.resolvedSearchType || args.type || 'auto',
-          autopromptString: response.data.autopromptString,
-          resultsCount: response.data.results.length,
-          results: response.data.results.map((result, index) => ({
-            index: index + 1,
-            title: result.title,
-            url: result.url,
-            publishedDate: result.publishedDate,
-            author: result.author,
-            score: result.score,
-            ...(result.text && { text: result.text }),
-            ...(result.highlights && { highlights: result.highlights }),
-            ...(result.summary && { summary: result.summary }),
-            ...(result.links && { linksCount: result.links.length }),
-            ...(result.imageLinks && { imageLinksCount: result.imageLinks.length })
-          }))
+          referenceUrl: args.url,
+          referenceDomain: referenceDomain,
+          similarPagesFound: response.data.results.length,
+          results: response.data.results.map((result, index) => {
+            let resultDomain = '';
+            try {
+              const urlObj = new URL(result.url);
+              resultDomain = urlObj.hostname;
+            } catch (e) {
+              // Ignore URL parsing errors
+            }
+
+            return {
+              index: index + 1,
+              title: result.title,
+              url: result.url,
+              domain: resultDomain,
+              sameDomain: resultDomain === referenceDomain,
+              publishedDate: result.publishedDate,
+              author: result.author,
+              score: result.score,
+              ...(result.text && { text: result.text }),
+              ...(result.highlights && { highlights: result.highlights }),
+              ...(result.summary && { summary: result.summary }),
+              ...(result.links && { linksCount: result.links.length }),
+              ...(result.imageLinks && { imageLinksCount: result.imageLinks.length })
+            };
+          })
+        };
+
+        // Add domain diversity analysis
+        const uniqueDomains = new Set(formattedResults.results.map(r => r.domain).filter(d => d));
+        (formattedResults as any).domainDiversity = {
+          uniqueDomains: uniqueDomains.size,
+          domains: Array.from(uniqueDomains)
         };
         
         const result = {
@@ -223,7 +245,7 @@ export function registerWebSearchTool(server: McpServer, config?: { exaApiKey?: 
           return {
             content: [{
               type: "text" as const,
-              text: `Search error (${statusCode}): ${errorMessage}`
+              text: `Find similar error (${statusCode}): ${errorMessage}`
             }],
             isError: true,
           };
@@ -232,7 +254,7 @@ export function registerWebSearchTool(server: McpServer, config?: { exaApiKey?: 
         return {
           content: [{
             type: "text" as const,
-            text: `Search error: ${error instanceof Error ? error.message : String(error)}`
+            text: `Find similar error: ${error instanceof Error ? error.message : String(error)}`
           }],
           isError: true,
         };

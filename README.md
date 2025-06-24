@@ -99,10 +99,18 @@ Replace `your-api-key-here` with your actual Exa API key from [dashboard.exa.ai/
 
 The Exa MCP server includes the following tools, which can be enabled by adding the `--tools`:
 
-- **web_search_exa**: Performs real-time web searches with optimized results and content extraction.
+#### Core Search & Content Tools
+- **web_search_exa**: Advanced web search with semantic understanding. Supports filtering by date, domain, content type, and includes full text extraction, highlights, and AI summaries.
+- **get_contents_exa**: Retrieve full content from specific URLs with advanced extraction options. Supports batch processing, live crawling, subpage extraction, and various content formats.
+- **find_similar_exa**: Find pages semantically similar to a given URL. Perfect for competitor analysis, finding related research papers, or building recommendation systems.
+- **answer_with_citations_exa**: Generate direct answers to questions with citations from web sources. Uses AI to search, analyze, and provide accurate answers backed by reliable sources.
+- **deep_research_exa**: Conduct comprehensive research on any topic with structured output. Performs deep web analysis, synthesizes information from multiple sources, and generates detailed reports.
+- **check_research_status_exa**: Check the status of previously initiated deep research tasks.
+
+#### Specialized Search Tools
 - **research_paper_search**: Specialized search focused on academic papers and research content.
 - **company_research**: Comprehensive company research tool that crawls company websites to gather detailed information about businesses.
-- **crawling**: Extracts content from specific URLs, useful for reading articles, PDFs, or any web page when you have the exact URL.
+- **crawling**: Legacy tool for extracting content from specific URLs (consider using get_contents_exa for more features).
 - **competitor_finder**: Identifies competitors of a company by searching for businesses offering similar products or services.
 - **linkedin_search**: Search LinkedIn for companies and people using Exa AI. Simply include company names, person names, or specific LinkedIn URLs in your query.
 - **wikipedia_search_exa**: Search and retrieve information from Wikipedia articles on specific topics, giving you accurate, structured knowledge from the world's largest encyclopedia.
@@ -120,7 +128,7 @@ You can choose which tools to enable by adding the `--tools` parameter to your C
       "args": [
         "-y",
         "exa-mcp-server",
-        "--tools=web_search_exa,research_paper_search,company_research,crawling,competitor_finder,linkedin_search,wikipedia_search_exa,github_search"
+        "--tools=web_search_exa,get_contents_exa,find_similar_exa,answer_with_citations_exa,deep_research_exa,check_research_status_exa,research_paper_search,company_research,crawling,competitor_finder,linkedin_search,wikipedia_search_exa,github_search"
       ],
       "env": {
         "EXA_API_KEY": "your-api-key-here"
@@ -140,7 +148,7 @@ For enabling multiple tools, use a comma-separated list:
       "args": [
         "-y",
         "exa-mcp-server",
-        "--tools=web_search_exa,research_paper_search,company_research,crawling,competitor_finder,linkedin_search,wikipedia_search_exa,github_search"
+        "--tools=web_search_exa,get_contents_exa,find_similar_exa,answer_with_citations_exa,deep_research_exa,check_research_status_exa,research_paper_search,company_research,crawling,competitor_finder,linkedin_search,wikipedia_search_exa,github_search"
       ],
       "env": {
         "EXA_API_KEY": "your-api-key-here"

@@ -11,6 +11,10 @@ import { registerCompetitorFinderTool } from "./tools/competitorFinder.js";
 import { registerLinkedInSearchTool } from "./tools/linkedInSearch.js";
 import { registerWikipediaSearchTool } from "./tools/wikipediaSearch.js";
 import { registerGithubSearchTool } from "./tools/githubSearch.js";
+import { registerContentsTool } from "./tools/contents.js";
+import { registerFindSimilarTool } from "./tools/findSimilar.js";
+import { registerAnswerTool } from "./tools/answer.js";
+import { registerResearchTool } from "./tools/research.js";
 import { log } from "./utils/logger.js";
 
 // Configuration schema for the EXA API key and tool selection
@@ -22,7 +26,12 @@ export const configSchema = z.object({
 
 // Tool registry for managing available tools
 const availableTools = {
-  'web_search_exa': { name: 'Web Search (Exa)', description: 'Real-time web search using Exa AI', enabled: true },
+  'web_search_exa': { name: 'Web Search (Exa)', description: 'Advanced web search with semantic understanding and content extraction', enabled: true },
+  'get_contents_exa': { name: 'Get Contents', description: 'Retrieve full content from specific URLs with extraction options', enabled: true },
+  'find_similar_exa': { name: 'Find Similar', description: 'Find pages semantically similar to a given URL', enabled: true },
+  'answer_with_citations_exa': { name: 'Answer with Citations', description: 'Generate answers to questions with web citations', enabled: true },
+  'deep_research_exa': { name: 'Deep Research', description: 'Conduct comprehensive research with structured output', enabled: true },
+  'check_research_status_exa': { name: 'Check Research Status', description: 'Check status of research tasks', enabled: true },
   'research_paper_search_exa': { name: 'Research Paper Search', description: 'Search academic papers and research', enabled: true },
   'company_research_exa': { name: 'Company Research', description: 'Research companies and organizations', enabled: true },
   'crawling_exa': { name: 'Web Crawling', description: 'Extract content from specific URLs', enabled: true },
@@ -78,6 +87,27 @@ export default function ({ config }: { config: z.infer<typeof configSchema> }) {
     if (shouldRegisterTool('web_search_exa')) {
       registerWebSearchTool(server, config);
       registeredTools.push('web_search_exa');
+    }
+    
+    if (shouldRegisterTool('get_contents_exa')) {
+      registerContentsTool(server, config);
+      registeredTools.push('get_contents_exa');
+    }
+    
+    if (shouldRegisterTool('find_similar_exa')) {
+      registerFindSimilarTool(server, config);
+      registeredTools.push('find_similar_exa');
+    }
+    
+    if (shouldRegisterTool('answer_with_citations_exa')) {
+      registerAnswerTool(server, config);
+      registeredTools.push('answer_with_citations_exa');
+    }
+    
+    if (shouldRegisterTool('deep_research_exa') || shouldRegisterTool('check_research_status_exa')) {
+      registerResearchTool(server, config);
+      if (shouldRegisterTool('deep_research_exa')) registeredTools.push('deep_research_exa');
+      if (shouldRegisterTool('check_research_status_exa')) registeredTools.push('check_research_status_exa');
     }
     
     if (shouldRegisterTool('research_paper_search_exa')) {
