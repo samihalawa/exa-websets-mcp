@@ -116,6 +116,46 @@ The Exa MCP server includes the following tools, which can be enabled by adding 
 - **wikipedia_search_exa**: Search and retrieve information from Wikipedia articles on specific topics, giving you accurate, structured knowledge from the world's largest encyclopedia.
 - **github_search**: Search GitHub repositories using Exa AI - performs real-time searches on GitHub.com to find relevant repositories, issues, and GitHub accounts.
 
+#### Websets API Tools
+The Exa MCP server now includes comprehensive support for the Websets API, enabling advanced targeted search, data enrichment, and monitoring capabilities:
+
+##### Webset Management
+- **create_webset_exa**: Create a new Webset for targeted search and enrichment with optional initial search and enrichment tasks.
+- **list_websets_exa**: List all Websets with pagination support and status information.
+- **get_webset_exa**: Get detailed information about a specific Webset including searches, enrichments, and monitors.
+- **update_webset_exa**: Update Webset metadata, external ID, or status (pause/resume).
+- **delete_webset_exa**: Delete a Webset and all its associated data.
+- **cancel_webset_exa**: Cancel all running operations for a Webset.
+
+##### Webset Search Operations
+- **create_webset_search_exa**: Create a search within a Webset with custom query and evaluation criteria.
+- **get_webset_search_exa**: Get details of a specific search including status and progress.
+- **list_webset_searches_exa**: List all searches for a Webset.
+- **cancel_webset_search_exa**: Cancel a running search operation.
+
+##### Webset Enrichment
+- **create_webset_enrichment_exa**: Create enrichment tasks to extract specific data from found items.
+- **get_webset_enrichment_exa**: Get enrichment task details.
+- **list_webset_enrichments_exa**: List all enrichment tasks for a Webset.
+- **delete_webset_enrichment_exa**: Delete an enrichment task.
+- **cancel_webset_enrichment_exa**: Cancel a running enrichment.
+
+##### Webset Items
+- **list_webset_items_exa**: List all items found and verified within a Webset.
+- **get_webset_item_exa**: Get detailed information about a specific item.
+- **delete_webset_item_exa**: Delete an item from a Webset.
+- **search_webset_items_exa**: Search and filter items with various criteria.
+
+##### Additional Operations
+- **create_import_exa**: Import data from external sources (CSV, JSON).
+- **get_import_exa**: Get import job details.
+- **create_webset_monitor_exa**: Create monitors for periodic searches.
+- **update_webset_monitor_exa**: Update monitor settings.
+- **create_webhook_exa**: Create webhooks for event notifications.
+- **list_webhook_attempts_exa**: List webhook delivery attempts.
+- **list_events_exa**: List system events.
+- **get_event_exa**: Get event details.
+
 You can choose which tools to enable by adding the `--tools` parameter to your Claude Desktop configuration:
 
 #### Specify which tools to enable:
@@ -149,6 +189,28 @@ For enabling multiple tools, use a comma-separated list:
         "-y",
         "exa-mcp-server",
         "--tools=web_search_exa,get_contents_exa,find_similar_exa,answer_with_citations_exa,deep_research_exa,check_research_status_exa,research_paper_search,company_research,crawling,competitor_finder,linkedin_search,wikipedia_search_exa,github_search"
+      ],
+      "env": {
+        "EXA_API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}
+```
+
+#### Example: Enabling Websets API Tools
+
+To enable Websets API functionality for targeted search and enrichment:
+
+```json
+{
+  "mcpServers": {
+    "exa": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "exa-mcp-server",
+        "--tools=create_webset_exa,list_websets_exa,get_webset_exa,create_webset_search_exa,create_webset_enrichment_exa,list_webset_items_exa,create_webset_monitor_exa"
       ],
       "env": {
         "EXA_API_KEY": "your-api-key-here"

@@ -15,6 +15,16 @@ import { registerContentsTool } from "./tools/contents.js";
 import { registerFindSimilarTool } from "./tools/findSimilar.js";
 import { registerAnswerTool } from "./tools/answer.js";
 import { registerResearchTool } from "./tools/research.js";
+
+// Import Websets API tools
+import {
+  registerWebsetManagementTools,
+  registerWebsetSearchTools,
+  registerWebsetEnrichmentTools,
+  registerWebsetItemTools,
+  registerWebsetOperationTools
+} from "./tools/websets/index.js";
+
 import { log } from "./utils/logger.js";
 
 // Configuration schema for the EXA API key and tool selection
@@ -26,6 +36,7 @@ export const configSchema = z.object({
 
 // Tool registry for managing available tools
 const availableTools = {
+  // Search API tools
   'web_search_exa': { name: 'Web Search (Exa)', description: 'Advanced web search with semantic understanding and content extraction', enabled: true },
   'get_contents_exa': { name: 'Get Contents', description: 'Retrieve full content from specific URLs with extraction options', enabled: true },
   'find_similar_exa': { name: 'Find Similar', description: 'Find pages semantically similar to a given URL', enabled: true },
@@ -38,7 +49,44 @@ const availableTools = {
   'competitor_finder_exa': { name: 'Competitor Finder', description: 'Find business competitors', enabled: true },
   'linkedin_search_exa': { name: 'LinkedIn Search', description: 'Search LinkedIn profiles and companies', enabled: true },
   'wikipedia_search_exa': { name: 'Wikipedia Search', description: 'Search Wikipedia articles', enabled: true },
-  'github_search_exa': { name: 'GitHub Search', description: 'Search GitHub repositories and code', enabled: true }
+  'github_search_exa': { name: 'GitHub Search', description: 'Search GitHub repositories and code', enabled: true },
+  
+  // Websets API tools - Management
+  'create_webset_exa': { name: 'Create Webset', description: 'Create a new Webset for targeted search and enrichment', enabled: true },
+  'list_websets_exa': { name: 'List Websets', description: 'List all Websets with pagination', enabled: true },
+  'get_webset_exa': { name: 'Get Webset', description: 'Get detailed information about a specific Webset', enabled: true },
+  'update_webset_exa': { name: 'Update Webset', description: 'Update Webset metadata or status', enabled: true },
+  'delete_webset_exa': { name: 'Delete Webset', description: 'Delete a Webset and all its data', enabled: true },
+  'cancel_webset_exa': { name: 'Cancel Webset', description: 'Cancel all running operations for a Webset', enabled: true },
+  
+  // Websets API tools - Search
+  'create_webset_search_exa': { name: 'Create Webset Search', description: 'Create a search within a Webset', enabled: true },
+  'get_webset_search_exa': { name: 'Get Webset Search', description: 'Get details of a specific search', enabled: true },
+  'list_webset_searches_exa': { name: 'List Webset Searches', description: 'List all searches for a Webset', enabled: true },
+  'cancel_webset_search_exa': { name: 'Cancel Webset Search', description: 'Cancel a running search', enabled: true },
+  
+  // Websets API tools - Enrichment
+  'create_webset_enrichment_exa': { name: 'Create Webset Enrichment', description: 'Create an enrichment task', enabled: true },
+  'get_webset_enrichment_exa': { name: 'Get Webset Enrichment', description: 'Get enrichment details', enabled: true },
+  'list_webset_enrichments_exa': { name: 'List Webset Enrichments', description: 'List all enrichments', enabled: true },
+  'delete_webset_enrichment_exa': { name: 'Delete Webset Enrichment', description: 'Delete an enrichment', enabled: true },
+  'cancel_webset_enrichment_exa': { name: 'Cancel Webset Enrichment', description: 'Cancel a running enrichment', enabled: true },
+  
+  // Websets API tools - Items
+  'list_webset_items_exa': { name: 'List Webset Items', description: 'List all items in a Webset', enabled: true },
+  'get_webset_item_exa': { name: 'Get Webset Item', description: 'Get detailed item information', enabled: true },
+  'delete_webset_item_exa': { name: 'Delete Webset Item', description: 'Delete an item from a Webset', enabled: true },
+  'search_webset_items_exa': { name: 'Search Webset Items', description: 'Search and filter items', enabled: true },
+  
+  // Websets API tools - Operations
+  'create_import_exa': { name: 'Create Import', description: 'Import data from external sources', enabled: true },
+  'get_import_exa': { name: 'Get Import', description: 'Get import job details', enabled: true },
+  'create_webset_monitor_exa': { name: 'Create Monitor', description: 'Create a monitor for periodic searches', enabled: true },
+  'update_webset_monitor_exa': { name: 'Update Monitor', description: 'Update monitor settings', enabled: true },
+  'create_webhook_exa': { name: 'Create Webhook', description: 'Create webhook for event notifications', enabled: true },
+  'list_webhook_attempts_exa': { name: 'List Webhook Attempts', description: 'List webhook delivery attempts', enabled: true },
+  'list_events_exa': { name: 'List Events', description: 'List system events', enabled: true },
+  'get_event_exa': { name: 'Get Event', description: 'Get event details', enabled: true }
 };
 
 /**
@@ -143,6 +191,71 @@ export default function ({ config }: { config: z.infer<typeof configSchema> }) {
     if (shouldRegisterTool('github_search_exa')) {
       registerGithubSearchTool(server, config);
       registeredTools.push('github_search_exa');
+    }
+    
+    // Register Websets API tools
+    const websetTools = [
+      'create_webset_exa', 'list_websets_exa', 'get_webset_exa', 
+      'update_webset_exa', 'delete_webset_exa', 'cancel_webset_exa'
+    ];
+    const websetSearchTools = [
+      'create_webset_search_exa', 'get_webset_search_exa',
+      'list_webset_searches_exa', 'cancel_webset_search_exa'
+    ];
+    const websetEnrichmentTools = [
+      'create_webset_enrichment_exa', 'get_webset_enrichment_exa',
+      'list_webset_enrichments_exa', 'delete_webset_enrichment_exa',
+      'cancel_webset_enrichment_exa'
+    ];
+    const websetItemTools = [
+      'list_webset_items_exa', 'get_webset_item_exa',
+      'delete_webset_item_exa', 'search_webset_items_exa'
+    ];
+    const websetOperationTools = [
+      'create_import_exa', 'get_import_exa',
+      'create_webset_monitor_exa', 'update_webset_monitor_exa',
+      'create_webhook_exa', 'list_webhook_attempts_exa',
+      'list_events_exa', 'get_event_exa'
+    ];
+    
+    // Register Webset Management tools
+    if (websetTools.some(tool => shouldRegisterTool(tool))) {
+      registerWebsetManagementTools(server, config);
+      websetTools.forEach(tool => {
+        if (shouldRegisterTool(tool)) registeredTools.push(tool);
+      });
+    }
+    
+    // Register Webset Search tools
+    if (websetSearchTools.some(tool => shouldRegisterTool(tool))) {
+      registerWebsetSearchTools(server, config);
+      websetSearchTools.forEach(tool => {
+        if (shouldRegisterTool(tool)) registeredTools.push(tool);
+      });
+    }
+    
+    // Register Webset Enrichment tools
+    if (websetEnrichmentTools.some(tool => shouldRegisterTool(tool))) {
+      registerWebsetEnrichmentTools(server, config);
+      websetEnrichmentTools.forEach(tool => {
+        if (shouldRegisterTool(tool)) registeredTools.push(tool);
+      });
+    }
+    
+    // Register Webset Item tools
+    if (websetItemTools.some(tool => shouldRegisterTool(tool))) {
+      registerWebsetItemTools(server, config);
+      websetItemTools.forEach(tool => {
+        if (shouldRegisterTool(tool)) registeredTools.push(tool);
+      });
+    }
+    
+    // Register Webset Operation tools
+    if (websetOperationTools.some(tool => shouldRegisterTool(tool))) {
+      registerWebsetOperationTools(server, config);
+      websetOperationTools.forEach(tool => {
+        if (shouldRegisterTool(tool)) registeredTools.push(tool);
+      });
     }
     
     if (config.debug) {
