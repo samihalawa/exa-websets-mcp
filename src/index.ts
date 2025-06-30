@@ -19,7 +19,7 @@ import { log } from "./utils/logger.js";
 
 // Configuration schema for the EXA API key and tool selection
 export const configSchema = z.object({
-  exaApiKey: z.string().optional().describe("Exa AI API key for search operations"),
+  exaApiKey: z.string().describe("Exa AI API key for Websets operations (required)"),
   enabledTools: z.array(z.string()).optional().describe("List of tools to enable (if not specified, all tools are enabled)"),
   debug: z.boolean().default(false).describe("Enable debug logging")
 });
@@ -106,16 +106,28 @@ const availableTools = {
 
 export default function ({ config }: { config: z.infer<typeof configSchema> }) {
   try {
+    // Handle configuration from environment variables when available
+    const finalConfig = {
+      exaApiKey: config.exaApiKey || process.env.EXA_API_KEY,
+      enabledTools: config.enabledTools || (process.env.ENABLED_TOOLS ? process.env.ENABLED_TOOLS.split(',') : undefined),
+      debug: config.debug || process.env.DEBUG_MODE === 'true'
+    };
+
+    // Validate API key is available
+    if (!finalConfig.exaApiKey) {
+      throw new Error("EXA_API_KEY is required but not provided in config or environment");
+    }
+
     // Set the API key in environment for tool functions to use
-    // process.env.EXA_API_KEY = config.exaApiKey;
+    process.env.EXA_API_KEY = finalConfig.exaApiKey;
     
-    if (config.debug) {
-      log("Starting Exa MCP Server in debug mode");
+    if (finalConfig.debug) {
+      log("Starting Exa Websets MCP Server in debug mode");
     }
 
     // Create MCP server
     const server = new McpServer({
-      name: "exa-search-server",
+      name: "exa-websets-server", 
       version: "1.0.0"
     });
     
@@ -123,8 +135,8 @@ export default function ({ config }: { config: z.infer<typeof configSchema> }) {
 
     // Helper function to check if a tool should be registered
     const shouldRegisterTool = (toolId: string): boolean => {
-      if (config.enabledTools && config.enabledTools.length > 0) {
-        return config.enabledTools.includes(toolId);
+      if (finalConfig.enabledTools && finalConfig.enabledTools.length > 0) {
+        return finalConfig.enabledTools.includes(toolId);
       }
       return availableTools[toolId as keyof typeof availableTools]?.enabled ?? false;
     };
@@ -240,25 +252,25 @@ export default function ({ config }: { config: z.infer<typeof configSchema> }) {
     
     // Register the tool groups
     if (needsManagement) {
-      registerWebsetManagementTools(server, config);
+      registerWebsetManagementTools(server, finalConfig);
     }
     if (needsSearch) {
-      registerWebsetSearchTools(server, config);
+      registerWebsetSearchTools(server, finalConfig);
     }
     if (needsEnrichment) {
-      registerWebsetEnrichmentTools(server, config);
+      registerWebsetEnrichmentTools(server, finalConfig);
     }
     if (needsItems) {
-      registerWebsetItemTools(server, config);
+      registerWebsetItemTools(server, finalConfig);
     }
     if (needsOperations) {
-      registerWebsetOperationTools(server, config);
+      registerWebsetOperationTools(server, finalConfig);
     }
     if (needsExport) {
-      registerWebsetExportTools(server, config);
+      registerWebsetExportTools(server, finalConfig);
     }
     if (needsBatch) {
-      registerWebsetBatchTools(server, config);
+      registerWebsetBatchTools(server, finalConfig);
     }
     
     // Track which tools were registered
@@ -268,7 +280,7 @@ export default function ({ config }: { config: z.infer<typeof configSchema> }) {
       }
     });
     
-    if (config.debug) {
+    if (finalConfig.debug) {
       log(`Registered ${registeredTools.length} tools: ${registeredTools.join(', ')}`);
     }
     

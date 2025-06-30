@@ -37,16 +37,6 @@ components:
       in: path
       required: true
       schema: { type: string }
-    streamId:
-      name: streamId
-      in: path
-      required: true
-      schema: { type: string }
-    runId:
-      name: runId
-      in: path
-      required: true
-      schema: { type: string }
 
   schemas:
     Webset:
@@ -80,19 +70,6 @@ components:
         description: { type: string }
         status: { type: string }
       required: [id, description]
-    Stream:
-      type: object
-      properties:
-        id: { type: string }
-        name: { type: string }
-        status: { type: string }
-      required: [id, name]
-    StreamRun:
-      type: object
-      properties:
-        id: { type: string }
-        status: { type: string }
-      required: [id]
     Import:
       type: object
       properties:
@@ -400,117 +377,6 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Enrichment' }
 
-  /v0/websets/{webset}/streams:
-    parameters: [ { $ref: '#/components/parameters/webset' } ]
-    post:
-      summary: Create Stream
-      security: [ { ApiKeyAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name: { type: string }
-                config: { type: object }
-              required: [name, config]
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/Stream' }
-    get:
-      summary: List Streams
-      security: [ { ApiKeyAuth: [] } ]
-      parameters: [ { $ref: '#/components/parameters/cursor' },
-                    { $ref: '#/components/parameters/limit' } ]
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data: { type: array, items: { $ref: '#/components/schemas/Stream' } }
-                  hasMore: { type: boolean }
-                  nextCursor: { type: string }
-
-  /v0/websets/{webset}/streams/{streamId}:
-    parameters: [ { $ref: '#/components/parameters/webset' },
-                  { $ref: '#/components/parameters/streamId' } ]
-    get:
-      summary: Get Stream
-      security: [ { ApiKeyAuth: [] } ]
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/Stream' }
-    patch:
-      summary: Update Stream
-      security: [ { ApiKeyAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name: { type: string }
-                config: { type: object }
-      responses:
-        '200':
-          description: Updated
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/Stream' }
-    delete:
-      summary: Delete Stream
-      security: [ { ApiKeyAuth: [] } ]
-      responses:
-        '200':
-          description: Deleted
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/Stream' }
-
-  /v0/websets/{webset}/streams/{streamId}/runs:
-    parameters: [ { $ref: '#/components/parameters/webset' },
-                  { $ref: '#/components/parameters/streamId' } ]
-    get:
-      summary: List Stream Runs
-      security: [ { ApiKeyAuth: [] } ]
-      parameters: [ { $ref: '#/components/parameters/cursor' },
-                    { $ref: '#/components/parameters/limit' } ]
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data: { type: array, items: { $ref: '#/components/schemas/StreamRun' } }
-                  hasMore: { type: boolean }
-                  nextCursor: { type: string }
-
-  /v0/websets/{webset}/streams/{streamId}/runs/{runId}:
-    parameters: [ { $ref: '#/components/parameters/webset' },
-                  { $ref: '#/components/parameters/streamId' },
-                  { $ref: '#/components/parameters/runId' } ]
-    get:
-      summary: Get Stream Run
-      security: [ { ApiKeyAuth: [] } ]
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/StreamRun' }
 
   /v0/imports:
     get:

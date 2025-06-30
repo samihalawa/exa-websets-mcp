@@ -7,51 +7,60 @@ startCommand:
     properties:
       exaApiKey:
         type: string
-        description: "Your Exa API key for web search capabilities (required)"
-      numResults:
-        type: number
-        description: "Default number of search results to return (1-10)"
-        default: 5
-        minimum: 1
-        maximum: 10
-      includeDomains:
+        description: "Your Exa API key for Websets capabilities (required)"
+      enabledTools:
         type: array
-        description: "List of domains to restrict search results to"
+        description: "List of specific tools to enable (if not specified, all tools are enabled)"
         items:
           type: string
-      excludeDomains:
-        type: array
-        description: "List of domains to exclude from search results"
-        items:
-          type: string
-      enableWebSearch:
-        type: boolean
-        description: "Enable general web search functionality"
-        default: true
-      enablePaperSearch:
-        type: boolean
-        description: "Enable academic paper search functionality"
-        default: true
-      enableCompanySearch:
-        type: boolean
-        description: "Enable company/business search functionality"
-        default: true
-      enableLinkedInSearch:
-        type: boolean
-        description: "Enable LinkedIn profile search functionality"
-        default: true
-      enableWikipediaSearch:
-        type: boolean
-        description: "Enable Wikipedia search functionality"
-        default: true
-      enableGitHubSearch:
-        type: boolean
-        description: "Enable GitHub repository search functionality"
-        default: true
-      enableCrawling:
-        type: boolean
-        description: "Enable web page crawling for detailed content extraction"
-        default: true
+          enum:
+            - "create_webset_exa"
+            - "list_websets_exa"
+            - "get_webset_exa"
+            - "update_webset_exa"
+            - "delete_webset_exa"
+            - "cancel_webset_exa"
+            - "create_webset_search_exa"
+            - "get_webset_search_exa"
+            - "list_webset_searches_exa"
+            - "cancel_webset_search_exa"
+            - "create_webset_enrichment_exa"
+            - "get_webset_enrichment_exa"
+            - "list_webset_enrichments_exa"
+            - "delete_webset_enrichment_exa"
+            - "cancel_webset_enrichment_exa"
+            - "list_webset_items_exa"
+            - "get_webset_item_exa"
+            - "delete_webset_item_exa"
+            - "search_webset_items_exa"
+            - "create_import_exa"
+            - "get_import_exa"
+            - "list_imports_exa"
+            - "update_import_exa"
+            - "delete_import_exa"
+            - "create_webset_monitor_exa"
+            - "get_webset_monitor_exa"
+            - "list_webset_monitors_exa"
+            - "update_webset_monitor_exa"
+            - "delete_webset_monitor_exa"
+            - "list_monitor_runs_exa"
+            - "get_monitor_run_exa"
+            - "create_webhook_exa"
+            - "get_webhook_exa"
+            - "list_webhooks_exa"
+            - "update_webhook_exa"
+            - "delete_webhook_exa"
+            - "list_webhook_attempts_exa"
+            - "list_events_exa"
+            - "get_event_exa"
+            - "create_export_exa"
+            - "get_export_exa"
+            - "list_exports_exa"
+            - "delete_export_exa"
+            - "update_webset_item_exa"
+            - "batch_update_items_exa"
+            - "batch_delete_items_exa"
+            - "batch_verify_items_exa"
       debugMode:
         type: boolean
         description: "Enable debug logging"
@@ -62,38 +71,21 @@ startCommand:
       args: ['.smithery/index.cjs'],
       env: {
         EXA_API_KEY: config.exaApiKey,
-        NUM_RESULTS: config.numResults?.toString() || '5',
-        INCLUDE_DOMAINS: config.includeDomains?.join(',') || '',
-        EXCLUDE_DOMAINS: config.excludeDomains?.join(',') || '',
-        ENABLE_WEB_SEARCH: config.enableWebSearch ? 'true' : 'false',
-        ENABLE_PAPER_SEARCH: config.enablePaperSearch ? 'true' : 'false',
-        ENABLE_COMPANY_SEARCH: config.enableCompanySearch ? 'true' : 'false',
-        ENABLE_LINKEDIN_SEARCH: config.enableLinkedInSearch ? 'true' : 'false',
-        ENABLE_WIKIPEDIA_SEARCH: config.enableWikipediaSearch ? 'true' : 'false',
-        ENABLE_GITHUB_SEARCH: config.enableGitHubSearch ? 'true' : 'false',
-        ENABLE_CRAWLING: config.enableCrawling ? 'true' : 'false',
+        ENABLED_TOOLS: config.enabledTools?.join(',') || '',
         DEBUG_MODE: config.debugMode ? 'true' : 'false'
       }
     })
 exampleConfig:
   exaApiKey: "exa_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  numResults: 5
-  enableWebSearch: true
-  enablePaperSearch: true
-  enableCompanySearch: true
-  enableLinkedInSearch: true
-  enableWikipediaSearch: true
-  enableGitHubSearch: true
-  enableCrawling: true
+  enabledTools: ["create_webset_exa", "list_websets_exa", "create_webset_search_exa", "list_webset_items_exa"]
   debugMode: false
-description: "🔍 Exa MCP Server - Advanced web search with academic papers, companies, LinkedIn, Wikipedia, GitHub, and real-time content crawling"
+description: "📊 Exa Websets MCP Server - Advanced data collection management with search organization, enrichment operations, and monitoring capabilities"
 tags:
-  - "search"
-  - "web"
-  - "research"
-  - "papers"
-  - "linkedin"
-  - "wikipedia"
-  - "github"
-  - "crawling"
+  - "websets"
+  - "data-collection"
+  - "enrichment"
+  - "monitoring"
+  - "webhooks"
   - "exa"
+  - "automation"
+  - "search-management"
