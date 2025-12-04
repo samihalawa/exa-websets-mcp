@@ -1,39 +1,36 @@
-# Use the official Node.js 18 image as a parent image
+# Build stage
 FROM node:18-alpine AS builder
 
-# Set the working directory in the container to /app
 WORKDIR /app
 
-# Copy package.json and package-lock.json into the container
-COPY package.json package-lock.json ./
+# Copy package files
+COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --ignore-scripts
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci
 
-# Copy the rest of the application code into the container
-COPY src/ ./src/
-COPY tsconfig.json ./
+# Copy source code
+COPY . .
 
-# Build the project for Docker
+# Build TypeScript
 RUN npm run build
 
-# Use a minimal node image as the base image for running
-FROM node:18-alpine AS runner
+# Production stage
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy compiled code from the builder stage
-COPY --from=builder /app/.smithery ./.smithery
-COPY package.json package-lock.json ./
+# Copy package files
+COPY package*.json ./
 
 # Install only production dependencies
-RUN npm ci --production --ignore-scripts
+RUN npm ci --only=production
 
-# Set environment variable for the Exa API key
-ENV EXA_API_KEY=your-api-key-here
+# Copy built files from builder
+COPY --from=builder /app/dist ./dist
 
-# Expose the port the app runs on
-EXPOSE 3000
+# Set environment
+ENV NODE_ENV=production
 
-# Run the application
-ENTRYPOINT ["node", ".smithery/index.cjs"]
+# Start the MCP server
+CMD ["node", "dist/index.js"]
