@@ -1,0 +1,8 @@
+{
+    "actorSpecification": 1,
+    "name": "exa-websets-mcp",
+    "title": "Exa Websets MCP",
+    "description": "MCP server for Exa Websets",
+    "version": "0.1",
+    "dockerfile": "./Dockerfile"
+}
