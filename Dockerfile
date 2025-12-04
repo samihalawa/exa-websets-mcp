@@ -1,15 +1,16 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
+COPY package*.json ./
+RUN npm ci
 COPY . .
-RUN npm ci --ignore-scripts
-RUN npm run build
+RUN npm run build:stdio
 
 # Production stage
-FROM node:18-alpine
+FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev --ignore-scripts
-COPY --from=builder /app/build ./build
+COPY --from=builder /app/.smithery ./.smithery
 ENV NODE_ENV=production
-CMD ["node", "build/index.js"]
+CMD ["node", ".smithery/index.cjs"]
